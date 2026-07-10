@@ -9,7 +9,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "desktop": "concurrently \"vite\" \"electron .\""
+    "desktop": "concurrently \"vite\" \"electron .\"",
+    "dist": "vite build && electron-builder"
   },
   "dependencies": {
     "react": "^19.2.7",
@@ -24,6 +25,7 @@
     "autoprefixer": "^10.5.2",
     "concurrently": "^10.0.3",
     "electron": "^42.5.1",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.6.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
@@ -31,5 +33,24 @@
     "postcss": "^8.5.16",
     "tailwindcss": "^4.3.2",
     "vite": "^8.1.1"
+  },
+  "build": {
+    "appId": "com.vibespace.player",
+    "productName": "VibeSpace",
+    "files": [
+      "dist/**/*",
+      "main.cjs",
+      "preload.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/api.exe",
+        "to": "api.exe"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    }
   }
 }
