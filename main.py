@@ -169,3 +169,7 @@ def remove_from_playlist(name: str, video_id: str):
     
     save_playlists(data)
     return {"status": "success"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
