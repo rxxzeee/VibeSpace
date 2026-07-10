@@ -3,6 +3,10 @@ from fastapi.responses import StreamingResponse
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from ytmusicapi import YTMusic
+import os 
+import json
+from pydantic import BaseModel
+from typing import List
 import yt_dlp
 
 app = FastAPI(title="Music Player API")
@@ -91,3 +95,77 @@ def proxy_stream(video_id: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Помилка трансляції: {str(e)}")
+    
+"""
+Блок з плейлістами
+"""
+PLAYLISTS_FILE = "playlists.json"
+
+class TrackModel(BaseModel):
+    videoId: str
+    title: str
+    artist: List[str]
+    thumbnail: str = None
+
+def load_playlists():
+    if not os.path.exists(PLAYLISTS_FILE):
+        return {}
+    with open(PLAYLISTS_FILE, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except:
+            return {}
+
+def save_playlists(data):
+    with open(PLAYLISTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+@app.get("/playlists")
+def get_playlists():
+    """Отримати список всіх плейлістів"""
+    return {"status": "success", "data": list(load_playlists().keys())}
+
+@app.post("/playlists")
+def create_playlist(name: str):
+    """Створити новий плейліст"""
+    data = load_playlists()
+    if name in data:
+        return {"status": "error", "message": "Плейліст із такою назвою вже існує"}
+    data[name] = []
+    save_playlists(data)
+    return {"status": "success"}
+
+@app.get("/playlists/{name}")
+def get_playlist_tracks(name: str):
+    """Отримуємо список треків у плейлісті"""
+    data = load_playlists()
+    if name not in data:
+        raise HTTPException(status_code=404, detail="Плейліст не знайдено")
+    return {"status": "success", "data": data[name]}
+
+@app.post("/playlists/{name}/add")
+def add_to_playlist(name: str, track: TrackModel):
+    """Додавання трека в плейліст"""
+    data = load_playlists()
+    if name not in data:
+        raise HTTPException(status_code=404, detail="Плейліст не знайдено")
+    if any(t["videoId"] == track.videoId for t in data[name]):
+        return {"status": "success", "message": "Трек вже є в плейлісті"}
+    data[name].append(track.dict())
+    save_playlists(data)
+    return {"status": "success"}
+
+@app.delete("/playlists/{name}/tracks/{video_id}")
+def remove_from_playlist(name: str, video_id: str):
+    """Видалення треку з плейлісту"""
+    data = load_playlists()
+    if name not in data:
+        raise HTTPException(status_code=404, detail="Плейліст не знайдено")
+    
+    original_length = len(data[name])
+    data[name] = [track for track in data[name] if track["videoId"] != video_id]
+    if len(data[name]) == original_length:
+        return {"status": "error", "message": "Трек не знайдено в плейлісті"}
+    
+    save_playlists(data)
+    return {"status": "success"}
