@@ -1,0 +1,21 @@
+# Node.js
+node_modules/
+npm-debug.log
+
+# Mac/Windows
+.DS_Store
+Thumbs.db
+
+# Electron & Vite (Згенеровані папки)
+dist/
+dist_electron/
+release/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Локальні бази (якщо є)
+playlists.json
