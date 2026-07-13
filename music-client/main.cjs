@@ -27,8 +27,9 @@ function startBackend() {
 
 function createWindow () {
   const win = new BrowserWindow({
-    width: 900,
+    width: 1000,
     height: 700,
+    resizable: false,
     frame: false, 
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

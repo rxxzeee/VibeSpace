@@ -23,6 +23,9 @@ function App() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null)
   const [activeTrackList, setActiveTrackList] = useState([]) 
 
+  // Полоса гучності треку
+  const [volume, setVolume] = useState(1) // 1 це 100% гучності
+
   const audioRef = useRef(null)
   const canvasRef = useRef(null)
   const audioContextRef = useRef(null)
@@ -154,6 +157,22 @@ function App() {
     }
   }
 
+  // Перемикання на наступний трек
+  const handleNextTrack = () => {
+    if (activeTrackList && currentTrackIndex !== null && currentTrackIndex < activeTrackList.length - 1) {
+      const nextIndex = currentTrackIndex + 1
+      playTrack(activeTrackList[nextIndex], nextIndex, activeTrackList)
+    }
+  }
+
+  // Перемикання на попередній трек
+  const handlePrevTrack = () => {
+    if (activeTrackList && currentTrackIndex !== null && currentTrackIndex > 0) {
+      const prevIndex = currentTrackIndex - 1
+      playTrack(activeTrackList[prevIndex], prevIndex, activeTrackList)
+    }
+  }
+
   const togglePlay = async () => {
     if (!audioRef.current) return
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
@@ -215,6 +234,14 @@ function App() {
     draw()
     return () => cancelAnimationFrame(animationRef.current)
   }, [currentTrackUrl])
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value)
+    setVolume(newVolume)
+    if (audioRef.current){
+      audioRef.current.volume = newVolume
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#64557B] relative overflow-x-hidden font-['Inter',sans-serif] select-none pb-36">
@@ -379,7 +406,7 @@ function App() {
 
       {/* НИЖНЯ ПАНЕЛЬ ПЛЕЄРА */}
       {currentTrack && (
-        <div className="fixed bottom-0 left-0 right-0 h-28 bg-[#504561] shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex items-center justify-between px-8 border-t border-[#4B3C61]/20 z-40" style={{ WebkitAppRegion: 'no-drag' }}>
+        <div className="fixed bottom-0 left-0 right-0 h-28 bg-[#504561] shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex items-center justify-between px-6 border-t border-[#4B3C61]/20 z-40" style={{ WebkitAppRegion: 'no-drag' }}>
           <div className="flex items-center gap-4 w-1/4 min-w-[200px]">
             <div className="size-14 bg-zinc-300 rounded-xl overflow-hidden shadow-md flex-shrink-0">
               {currentTrack.thumbnail && <img src={currentTrack.thumbnail} alt={currentTrack.title} className="w-full h-full object-cover" />}
@@ -400,13 +427,37 @@ function App() {
                 <span className="text-violet-200 opacity-80 font-black text-[11px] font-['Inter'] w-20 text-right tabular-nums">{formatTime(currentTime)} / {formatTime(duration)}</span>
               </div>
             </div>
-
-            <button onClick={togglePlay} className="size-10 bg-violet-200 rounded-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-violet-300 transition-colors text-violet-900 flex-shrink-0">
-              {isPlaying ? <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg> :
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4 ml-0.5"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={handlePrevTrack} className="text-violet-200 opacity-80 hover:opacity-100 hover:text-white transition-all disabled:opacity-30" disabled={currentTrackIndex === 0 || currentTrackIndex === null}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                </svg>
+              </button>
+              <button onClick={togglePlay} className="size-10 bg-violet-200 rounded-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] flex items-center justify-center hover:bg-violet-300 transition-colors text-violet-900 flex-shrink-0">
+                {isPlaying ? <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg> :
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4 ml-0.5"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>}
+              </button>
+              <button onClick={handleNextTrack} className="text-violet-200 opacity-80 hover:opacity-100 hover:text-white transition-all disabled:opacity-30" disabled={!activeTrackList || currentTrackIndex === activeTrackList.length - 1}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <div className="w-1/4 hidden md:block"></div>
+          <div className="w-1/4 hidden md:flex items-center justify-end gap-1 mr-3">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-violet-200 opacity-80">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+              </svg>
+              <input 
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-24 h-1 bg-[#463b57] rounded-lg appearance-none cursor-pointer accent-violet-200"
+              />
+          </div>
         </div>
       )}
     </div>
