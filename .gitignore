@@ -10,6 +10,7 @@ Thumbs.db
 dist/
 dist_electron/
 release/
+build/
 
 # Python
 __pycache__/
