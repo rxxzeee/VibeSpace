@@ -4,10 +4,12 @@ mod models {
 
 mod services {
     pub mod youtube_music;
+    pub mod youtube_stream;
 }
 
 mod routes {
     pub mod search;
+    pub mod stream;
 }
 
 use axum::{routing::get, Router};
@@ -20,6 +22,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/search", get(routes::search::search_music))
+        .route("/stream/:video_id", get(routes::stream::stream))
         .layer(CorsLayer::permissive());
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
